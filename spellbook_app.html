@@ -151,7 +151,7 @@
         function setupListeners() {
             const spellsRef = collection(db, "spells");
             spellsUnsubscribe = onSnapshot(spellsRef, (snapshot) => {
-                allSpells = snapshot.docs.map(doc => ({ 'Spell Name': doc.id, ...doc.data() }));
+                allSpells = snapshot.docs.map(doc => doc.data());
                 allSpells.sort((a, b) => (a['Spell Name'] || '').localeCompare(b['Spell Name'] || ''));
                 renderAppLayout();
             }, (error) => {
@@ -568,9 +568,9 @@
                  try {
                     const batch = writeBatch(db);
                     spellsToUpload.forEach((spell, name) => {
-                        const { 'Spell Name': _, ...spellData } = spell;
-                        const spellRef = doc(db, "spells", name);
-                        batch.set(spellRef, spellData);
+                        const docId = name.replace(/\//g, "-");
+                        const spellRef = doc(db, "spells", docId);
+                        batch.set(spellRef, spell);
                     });
                     await batch.commit();
                     alert(`Import complete! ${spellsToUpload.size} spells were added or updated.`);
@@ -668,12 +668,13 @@
                 if (!newSpell['Spell Name'] || !newSpell['Level'] || !newSpell['Description']) {
                     alert('Please fill out all required fields.'); return;
                 }
-                if(allSpells.some(s => s['Spell Name'].toLowerCase() === newSpell['Spell Name'].toLowerCase())) {
+                const spellName = newSpell['Spell Name'];
+                if(allSpells.some(s => s['Spell Name'].toLowerCase() === spellName.toLowerCase())) {
                     alert('A spell with this name already exists.'); return;
                 }
-                const { 'Spell Name': spellName, ...spellData } = newSpell;
+                const docId = spellName.replace(/\//g, "-");
                 try {
-                    await setDoc(doc(db, "spells", spellName), spellData);
+                    await setDoc(doc(db, "spells", docId), newSpell);
                     closeModal(modal);
                 } catch(error) {
                     console.error("Error saving new spell:", error);
