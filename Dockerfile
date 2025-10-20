@@ -2,8 +2,7 @@
 FROM nginx:alpine
 
 # Copy the web app files into the Nginx public directory
-COPY index.html /usr/share/nginx/html/index.html
-COPY spells.json /usr/share/nginx/html/spells.json
+COPY . /usr/share/nginx/html/
 
 # Expose port 80 for the web server
 EXPOSE 80
