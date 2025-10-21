@@ -1,23 +1,21 @@
 services:
   spellbook-app:
-    # This tells Docker Compose to build the image from the Dockerfile in the current directory.
     build: .
-    # This sets a custom name for the container, just like the --name flag.
     container_name: my-spellbook
-    # This maps port 8080 on your machine to port 80 in the container, just like the -p flag.
     ports:
       - "3000:3000"
-    # This is a good practice to ensure the container restarts if it ever stops.
     restart: always
+    # This line passes the .env file to your Node.js app
+    env_file:
+      - .env
     depends_on:
       - db
   db:
     image: postgres:latest
     restart: always
-    environment:
-      POSTGRES_DB: dndspells
-      POSTGRES_USER: dnduser
-      POSTGRES_PASSWORD: dndspell_pass2005
+    # The 'db' service also uses the .env file
+    env_file:
+      - .env
     ports:
       - "5432:5432"
     volumes:
