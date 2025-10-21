@@ -6,6 +6,22 @@ services:
     container_name: my-spellbook
     # This maps port 8080 on your machine to port 80 in the container, just like the -p flag.
     ports:
-      - "8080:80"
+      - "3000:3000"
     # This is a good practice to ensure the container restarts if it ever stops.
     restart: always
+    depends_on:
+      - db
+  db:
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_DB: dndspells
+      POSTGRES_USER: dnduser
+      POSTGRES_PASSWORD: dndspell_pass2005
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

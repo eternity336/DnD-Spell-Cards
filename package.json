@@ -1,0 +1,26 @@
+{
+  "name": "dnd-spells",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eternity336/DnD-Spell-Cards.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/eternity336/DnD-Spell-Cards/issues"
+  },
+  "homepage": "https://github.com/eternity336/DnD-Spell-Cards#readme",
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "firebase-admin": "^13.5.0"
+  }
+}

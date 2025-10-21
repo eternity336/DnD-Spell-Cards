@@ -109,17 +109,23 @@ function displaySpellCard(spell, isGlobal) {
             document.getElementById('edit-spell-btn').addEventListener('click', () => openEditSpellModal(spell));
             document.getElementById('delete-spell-btn').addEventListener('click', async () => {
                 if (confirm(`Are you sure you want to permanently delete "${spell['Spell Name']}"?`)) {
-                    await db.deleteSpell(spell['Spell Name']);
-                    alert('Spell deleted.');
+                    // await db.deleteSpell(spell['Spell Name']);
+                    alert('Spell deletion is not implemented yet.');
                     displaySpellCard(null);
                 }
             });
         } else {
             document.getElementById('approve-btn').addEventListener('click', async () => {
-                if (confirm(`Approve "${spell['Spell Name']}"?`)) { await db.approveSpell(spell); alert('Spell approved!'); }
+                if (confirm(`Approve "${spell['Spell Name']}"?`)) { 
+                    // await db.approveSpell(spell); 
+                    alert('Spell approval is not implemented yet.'); 
+                }
             });
             document.getElementById('reject-btn').addEventListener('click', async () => {
-                if (confirm(`Reject and delete "${spell['Spell Name']}"?`)) { await db.rejectSpell(spell); alert('Spell rejected.'); }
+                if (confirm(`Reject and delete "${spell['Spell Name']}"?`)) { 
+                    // await db.rejectSpell(spell); 
+                    alert('Spell rejection is not implemented yet.'); 
+                }
             });
         }
     }
