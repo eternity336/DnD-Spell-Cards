@@ -1,8 +1,9 @@
-import * as db from '../firebase.js';
+import * as db from '../api.js';
 import { openAdminChangePinModal, openPinModal } from './modals.js';
 import { renderApp, renderPersonaEditView, renderPublicView, switchAdminTab } from './render.js';
 import { personas, currentPersona, setCurrentPersona, setCurrentPersonaAccess, setCurrentMode, hashPin, currentMode } from './core.js';
 import { isAdmin } from '../auth.js';
+import { attachDataListeners } from '../app.js';
 
 // --- EVENT HANDLERS ---
 
@@ -16,7 +17,10 @@ export function handleAdminActionClick(e) {
     } else if (target.classList.contains('delete-btn')) {
         if (type === 'user') {
             if (confirm(`Are you sure you want to delete the sub-admin "${name}"? This cannot be undone.`)) {
-                db.deleteUser(name).then(() => alert(`Sub-admin "${name}" deleted.`));
+                db.deleteUser(name).then(() => {
+                    alert(`Sub-admin "${name}" deleted.`);
+                    attachDataListeners(); // Refresh data after deleting a user
+                });
             }
         } else if (type === 'persona') {
             if (confirm(`Are you sure you want to delete the player "${name}"? This cannot be undone.`)) {
@@ -27,7 +31,7 @@ export function handleAdminActionClick(e) {
                         setCurrentPersona(null);
                         setCurrentPersonaAccess(null);
                     }
-                    // No full re-render needed, updatePersonas will handle the list update
+                    attachDataListeners(); // Refresh data after deleting a persona
                 });
             }
         }
@@ -82,31 +86,43 @@ export async function handlePersonaChange(e) {
     }
 
     const persona = personas[selectedName];
-    if (persona.ownerPinHash) {
-        openPinModal(`Login to ${selectedName}`, 'Enter PIN to access this player.', async (pin) => {
-            if (!pin) {
-                setCurrentPersona(null);
-                setCurrentPersonaAccess(null);
-                renderPublicView();
-                return;
-            }
-            const hashedPin = await hashPin(pin);
-            if (persona.ownerPinHash && hashedPin === persona.ownerPinHash) {
-                setCurrentPersonaAccess('owner');
-                setCurrentPersona(selectedName);
-            } else if (persona.guestPinHash && hashedPin === persona.guestPinHash) {
+
+    // Scenario 2: No PINs set at all
+    if (!persona.ownerPinHash && !persona.guestPinHash) {
+        setCurrentPersona(selectedName);
+        setCurrentPersonaAccess('owner'); // Grant owner access directly
+        renderPublicView();
+        return;
+    }
+
+    // Scenarios 1, 3, 4: At least one PIN is set, so prompt for PIN
+    openPinModal(`Login to ${selectedName}`, 'Enter PIN to access this character.', async (pin) => {
+        const hashedPin = pin ? await hashPin(pin) : null; // Hash if PIN is provided
+
+        // Check for Owner PIN first
+        if (persona.ownerPinHash && hashedPin === persona.ownerPinHash) {
+            setCurrentPersonaAccess('owner');
+            setCurrentPersona(selectedName);
+        }
+        // If not owner, check for Guest PIN
+        else if (persona.guestPinHash && hashedPin === persona.guestPinHash) {
+            setCurrentPersonaAccess('guest');
+            setCurrentPersona(selectedName);
+        }
+        // If no PIN provided, or incorrect PIN, handle based on guestPinHash presence
+        else {
+            // This covers Scenario 1: Owner has PIN, Guest has NO PIN set, and no PIN was entered or incorrect owner PIN
+            // In this case, if there's no guestPinHash, we should grant guest access.
+            if (!persona.guestPinHash) {
                 setCurrentPersonaAccess('guest');
                 setCurrentPersona(selectedName);
             } else {
+                // If a guest PIN is set, and no correct PIN was entered, deny access.
                 alert('Incorrect PIN.');
                 setCurrentPersona(null);
                 setCurrentPersonaAccess(null);
             }
-            renderPublicView();
-        });
-    } else {
-        setCurrentPersona(selectedName);
-        setCurrentPersonaAccess('owner');
+        }
         renderPublicView();
-    }
+    });
 }

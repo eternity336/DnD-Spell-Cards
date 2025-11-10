@@ -1,4 +1,4 @@
-import * as db from '../firebase.js';
+import * as db from '../api.js';
 import { openConflictModal } from './modals.js';
 import { isAdmin } from '../auth.js';
 
@@ -39,13 +39,9 @@ export function setCurrentMode(mode) {
     currentMode = mode;
 }
 
-export async function hashPin(pin) {
+export function hashPin(pin) {
     if (!pin) return null;
-    const encoder = new TextEncoder();
-    const data = encoder.encode(pin);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    return sha256(pin);
 }
 
 export function initTheme() {

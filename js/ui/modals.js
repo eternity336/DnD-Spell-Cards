@@ -1,7 +1,7 @@
 import { getCurrentUser, setCurrentUser, isAdmin } from '../auth.js';
-import * as db from '../firebase.js';
+import * as db from '../api.js';
 import { renderApp, renderPublicView } from './render.js';
-import { hashPin, personas, currentPersona, currentPersonaAccess, setPersonas, setCurrentPersona, setCurrentPersonaAccess, pendingSpells, setPendingSpells } from './core.js';
+import { hashPin, personas, currentPersona, currentPersonaAccess, setPersonas, setCurrentPersona, setCurrentPersonaAccess, pendingSpells, setPendingSpells, allUsers } from './core.js';
 import { attachDataListeners } from '../app.js';
 
 // --- MODAL FUNCTIONS (DEFINED FIRST) ---
@@ -29,21 +29,36 @@ function closeModal() {
 }
 
 export async function openAdminLoginModal() {
+    await attachDataListeners(); // Ensure allUsers is populated
+    // Filter for admin and sub-admin users
+    const adminUsers = allUsers.filter(user => user.role === 'admin' || user.role === 'sub-admin');
+    
+    // Generate options for the dropdown
+    const userOptions = adminUsers.map(user => 
+        `<option value="${user.username}" ${user.username === 'admin' ? 'selected' : ''}>${user.username}</option>`
+    ).join('');
+
     const content = `
         <form id="login-form" class="space-y-4">
-            <div><label class="block text-sm font-semibold">Username</label><input type="text" id="username" required class="mt-1" autocomplete="username"></div>
+            <div>
+                <label class="block text-sm font-semibold">Admin User</label>
+                <select id="username" required class="mt-1 w-full">
+                    ${userOptions}
+                </select>
+            </div>
             <div><label class="block text-sm font-semibold">4-Digit PIN</label><input type="password" id="pin" inputmode="numeric" pattern="[0-9]*" maxlength="4" required class="mt-1" autocomplete="current-password"></div>
             <button type="submit" class="w-full btn-indigo">Login</button>
         </form>`;
     openModal("Admin Login", content);
     document.getElementById('login-form').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const user = await db.getUser(document.getElementById('username').value.toLowerCase());
+        const username = document.getElementById('username').value; // Get username from select
+        const user = await db.getUser(username);
         const hashedPin = await hashPin(document.getElementById('pin').value);
         if (user && user.pinHash === hashedPin) {
             setCurrentUser(user);
             closeModal();
-            attachDataListeners();
+            await attachDataListeners(); // Await data refresh
             renderApp();
         } else {
             alert('Username or PIN is incorrect.');
@@ -67,7 +82,7 @@ export async function openSettingsModal() {
         const user = getCurrentUser();
         const existingUser = await db.getUser(user.username);
         const oldPinHash = await hashPin(oldPin);
-        if (existingUser.pinHash !== oldPinHash) {
+        if (!existingUser || existingUser.pinHash !== oldPinHash) {
             alert('Old PIN is incorrect.');
             return;
         }
@@ -101,6 +116,7 @@ export function openCreateSubAdminModal() {
        await db.createSubAdmin(username, pinHash);
        alert(`Sub-admin "${username}" created successfully.`);
        closeModal();
+       attachDataListeners(); // Refresh data after creating a new sub-admin
    });
 }
 
@@ -135,6 +151,7 @@ export function openAddPersonaModal() {
         setCurrentPersona(newName);
         setCurrentPersonaAccess('owner');
         closeModal();
+        attachDataListeners(); // Refresh data after creating a new persona
         renderPublicView();
     });
 }
@@ -218,6 +235,7 @@ export function openAddSpellModal() {
         }
         
         closeModal();
+        await attachDataListeners(); // Await data refresh
         renderApp();
     });
 }
@@ -251,6 +269,7 @@ export function openEditSpellModal(spell) {
         await db.updateSpell(spell['Spell Name'], newSpellData);
         alert('Spell updated successfully!');
         closeModal();
+        renderApp(); // Refresh the app to update the spell list
     });
 }
 
@@ -276,16 +295,18 @@ export function openPersonaSettingsModal() {
     if (!currentPersona || currentPersonaAccess !== 'owner') return;
 
     const persona = personas[currentPersona];
+    const currentOwnerPinRequired = persona.ownerPinHash ? 'required' : '';
+
     const content = `
         <form id="persona-pin-form" class="space-y-4">
             <p>Enter your current Owner PIN to make changes. Leave new PIN fields blank to remove them.</p>
-            <div><label class="block text-sm font-semibold">Current Owner PIN*</label><input type="password" id="current-owner-pin" maxlength="4" required class="mt-1"></div>
+            <div><label class="block text-sm font-semibold">Current Owner PIN*</label><input type="password" id="current-owner-pin" maxlength="4" ${currentOwnerPinRequired} class="mt-1"></div>
             <hr>
             <div><label class="block text-sm font-semibold">New Owner PIN (optional)</label><input type="password" id="new-owner-pin" maxlength="4" class="mt-1"></div>
             <div><label class="block text-sm font-semibold">New Guest PIN (optional)</label><input type="password" id="new-guest-pin" maxlength="4" class="mt-1"></div>
             <button type="submit" class="w-full btn-indigo">Save PIN Changes</button>
         </form>`;
-    openModal("Player Settings", content);
+    openModal("Character Settings", content);
 
     document.getElementById('persona-pin-form').addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -309,6 +330,7 @@ export function openPersonaSettingsModal() {
         await db.savePersonas(personas);
         alert("PIN settings updated successfully!");
         closeModal();
+        attachDataListeners(); // Refresh data after updating persona settings
     });
 }
 
@@ -353,5 +375,6 @@ export function openAdminChangePinModal(accountName, accountType) {
             alert(`PINs for ${accountName} have been updated.`);
         }
         closeModal();
+        attachDataListeners(); // Refresh data after updating persona PINs
     });
 }

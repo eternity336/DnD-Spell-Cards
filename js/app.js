@@ -1,6 +1,6 @@
 import { initTheme, handleCsvFileSelect, setAllSpells, setPendingSpells, setAllUsers, setPersonas } from './ui/core.js';
 import { renderApp } from './ui/render.js';
-import * as db from './firebase.js';
+import * as db from './api.js';
 import { isAdmin, getCurrentUser } from './auth.js';
 
 let unsubscribeGlobalSpells = () => {};
@@ -8,43 +8,54 @@ let unsubscribePendingSpells = () => {};
 let unsubscribeUsers = () => {};
 let unsubscribePersonas = () => {};
 
-export function attachDataListeners() {
+export async function attachDataListeners() { // Make it async
     // Unsubscribe from previous listeners
     unsubscribeGlobalSpells();
     unsubscribePendingSpells();
     unsubscribeUsers();
     unsubscribePersonas();
 
-    unsubscribeGlobalSpells = db.getGlobalSpells(snapshot => {
-        const spells = snapshot.docs.map(doc => doc.data());
-        setAllSpells(spells);
-        renderApp();
-    });
+    const promises = [];
 
-    unsubscribePendingSpells = db.getPendingSpells(snapshot => {
-        const spells = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setPendingSpells(spells);
-        renderApp();
-    });
+    promises.push(new Promise(resolve => {
+        db.getGlobalSpells(snapshot => {
+            const spells = snapshot.docs.map(doc => doc.data());
+            setAllSpells(spells);
+            resolve();
+        });
+    }));
 
-    if (isAdmin()) {
-        unsubscribeUsers = db.getUsers(snapshot => {
+    promises.push(new Promise(resolve => {
+        db.getPendingSpells(snapshot => {
+            const spells = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            setPendingSpells(spells);
+            resolve();
+        });
+    }));
+
+    promises.push(new Promise(resolve => {
+        db.getUsers(snapshot => {
             const users = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             setAllUsers(users);
-            renderApp();
+            resolve();
         });
-    }
+    }));
 
-    unsubscribePersonas = db.getPersonas(doc => {
-        setPersonas(doc.exists() ? doc.data() : {});
-        renderApp();
-    });
+    promises.push(new Promise(resolve => {
+        db.getPersonas(doc => {
+            setPersonas(doc.exists() ? doc.data() : {});
+            resolve();
+        });
+    }));
+
+    await Promise.all(promises); // Wait for all data to be fetched
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     getCurrentUser();
     initTheme();
-    attachDataListeners();
+    await attachDataListeners(); // Await here
+    renderApp(); // Render only after data is attached
 
     document.getElementById('csv-import-input').addEventListener('change', handleCsvFileSelect);
 });

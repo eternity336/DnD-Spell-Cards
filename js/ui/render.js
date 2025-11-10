@@ -1,5 +1,6 @@
+import { attachDataListeners } from '../app.js';
 import { getCurrentUser, isAdmin, logout } from '../auth.js';
-import * as db from '../firebase.js';
+import * as db from '../api.js';
 import {
     allSpells, pendingSpells, allUsers, personas, currentPersona, currentPersonaAccess, currentMode,
     toggleTheme
@@ -39,7 +40,7 @@ function updatePersonaDropdown() {
     const select = document.getElementById('persona-select');
     if (!select) return;
     const selectedValue = currentPersona;
-    select.innerHTML = '<option value="">-- All Spells --</option>';
+    select.innerHTML = '<option value="">-- Select Character --</option>';
     Object.keys(personas).sort().forEach(name => {
         const option = document.createElement('option');
         option.value = name;
@@ -111,7 +112,8 @@ function displaySpellCard(spell, isGlobal) {
                 if (confirm(`Are you sure you want to permanently delete "${spell['Spell Name']}"?`)) {
                     await db.deleteSpell(spell['Spell Name']);
                     alert('Spell deleted.');
-                    displaySpellCard(null);
+                    await attachDataListeners(); // Await data refresh
+                    renderApp(); // Re-render the app to update the list
                 }
             });
         } else {
@@ -119,7 +121,13 @@ function displaySpellCard(spell, isGlobal) {
                 if (confirm(`Approve "${spell['Spell Name']}"?`)) { await db.approveSpell(spell); alert('Spell approved!'); }
             });
             document.getElementById('reject-btn').addEventListener('click', async () => {
-                if (confirm(`Reject and delete "${spell['Spell Name']}"?`)) { await db.rejectSpell(spell); alert('Spell rejected.'); }
+                if (confirm(`Reject and delete "${spell['Spell Name']}"?`)) {
+                    await db.rejectSpell(spell);
+                    alert('Spell rejected.');
+                    // Await data refresh before re-rendering
+                    await attachDataListeners();
+                    renderApp(); // Re-render the app to update the list
+                }
             });
         }
     }
@@ -250,7 +258,7 @@ function renderUserManagementView() {
                 <button class="btn-gray change-pin-btn" data-name="${name}" data-type="persona">Change PINs</button>
                 <button class="btn-red delete-btn" data-name="${name}" data-type="persona">Delete</button>
             </div>
-        </div>`).join('') : '<p class="p-4 text-gray-500">No players found.</p>';
+        </div>`).join('') : '<p class="p-4 text-gray-500">No characters found.</p>';
 
     return `
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 h-full">
@@ -259,7 +267,7 @@ function renderUserManagementView() {
                 <div class="overflow-y-auto custom-scrollbar p-2 flex-grow">${subAdminHtml}</div>
             </div>
             <div class="bg-white rounded-lg shadow-md list-panel">
-                <div class="p-4 border-b"><h2 class="text-xl font-bold">Players (Personas)</h2></div>
+                <div class="p-4 border-b"><h2 class="text-xl font-bold">Characters (Personas)</h2></div>
                 <div class="overflow-y-auto custom-scrollbar p-2 flex-grow">${personaHtml}</div>
             </div>
         </div>`;
@@ -314,12 +322,12 @@ export function renderPublicView() {
     const container = document.getElementById('app-container');
     
     const personaOwnerButtons = currentPersona && currentPersonaAccess === 'owner' ?
-        `<button id="persona-settings-btn" class="btn-gray">Player Settings</button>
+        `<button id="persona-settings-btn" class="btn-gray">Character Settings</button>
          <button id="edit-persona-spells-btn" class="btn-gray">${currentMode === 'edit' ? 'Finish Editing' : 'Edit Spells'}</button>
          <button id="import-csv-btn" class="btn-gray">Import CSV</button>`: '';
          
     const adminDeleteButton = isAdmin() && currentPersona ? 
-        `<button id="delete-persona-btn" class="btn-red">Delete Player</button>` : '';
+        `<button id="delete-persona-btn" class="btn-red">Delete Character</button>` : '';
 
     container.innerHTML = `
         <header class="mb-4">
@@ -334,10 +342,10 @@ export function renderPublicView() {
             </div>
             <div class="p-4 bg-white rounded-lg shadow-md flex items-end gap-2">
                 <div class="flex-grow">
-                    <label for="persona-select" class="block text-sm font-medium mb-1">View Player Spells</label>
+                    <label for="persona-select" class="block text-sm font-medium mb-1">View Characters</label>
                     <select id="persona-select" class="w-full"></select>
                 </div>
-                <button id="add-persona-btn" class="btn-green">New Player</button>
+                <button id="add-persona-btn" class="btn-green">New Character</button>
                 ${adminDeleteButton}
             </div>
         </header>

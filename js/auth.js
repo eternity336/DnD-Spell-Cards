@@ -20,7 +20,7 @@ export function getCurrentUser() {
 }
 export function setCurrentUser(user) {
     if (user) {
-        currentUser = { username: user.id, role: user.role };
+        currentUser = { username: user.username, role: user.role };
         sessionStorage.setItem('currentUser', JSON.stringify(currentUser));
     } else {
         currentUser = null;

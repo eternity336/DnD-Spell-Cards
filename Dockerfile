@@ -1,8 +1,18 @@
-# Use a lightweight Nginx image to serve the web app
-FROM nginx:alpine
+FROM node:18
 
-# Copy the web app files into the Nginx public directory
-COPY . /usr/share/nginx/html/
+WORKDIR /usr/src/app
 
-# Expose port 80 for the web server
-EXPOSE 80
+# Install build tools for sqlite3 and sqlite-dev
+RUN apt-get update && apt-get install -y python3 make g++ libsqlite3-dev libtool sqlite3 && rm -rf /var/lib/apt/lists/*
+
+COPY package*.json ./
+# If you have a package-lock.json, uncomment the next line
+# COPY package-lock.json ./
+
+RUN npm install --production
+
+COPY . .
+
+EXPOSE 3000
+
+CMD [ "node", "server/server.js" ]
