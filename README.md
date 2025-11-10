@@ -108,7 +108,8 @@ The backend provides the following API endpoints:
 -   `POST /api/pending-spells/reject`: Reject and delete a pending spell (Admin only).
 
 ## Usage
--   Open the application in your web browser (e.g., `http://localhost:3000`).
+-   The application is deployed and can be used at: [https://dnd-spell-cards.onrender.com/](https://dnd-spell-cards.onrender.com/)
+-   **Local Usage:** Open the application in your web browser (e.g., `http://localhost:3000`).
 -   **Public View:** Browse spells, select a character persona, or submit a new spell for approval.
 -   **Admin Dashboard:** Log in as an admin to manage global spells, pending submissions, users, and personas. The default admin username is `admin` with PIN `0000`.
 
