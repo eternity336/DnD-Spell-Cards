@@ -64,7 +64,7 @@ export async function savePersonas(personasData) {
 }
 
 export async function updateSpell(oldSpellName, newSpellData) {
-    const oldDocId = oldSpellName.replace(/[\s/]/g, '-').toLowerCase();
+    const oldDocId = oldSpellName.replaceAll(/[\s/]/g, '-').toLowerCase();
     await fetch(`/api/spells/${oldDocId}`, {
         method: 'PUT',
         headers: {
@@ -75,7 +75,7 @@ export async function updateSpell(oldSpellName, newSpellData) {
 }
 
 export async function deleteSpell(spellName) {
-    const docId = spellName.replace(/[\s/]/g, '-').toLowerCase();
+    const docId = spellName.replaceAll(/[\s/]/g, '-').toLowerCase();
     await fetch(`/api/spells/${docId}`, {
         method: 'DELETE'
     });

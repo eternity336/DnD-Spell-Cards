@@ -20,8 +20,11 @@ function createFilterHeader(containerId, title, spells, onFilter) {
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    const spellLevels = ["Cantrip", ...[...new Set(spells.map(s => s.Level).filter(l => l && l !== 'Cantrip'))].sort()];
-    const spellSchools = [...new Set(spells.map(s => s.School).filter(Boolean))].sort();
+    const spellLevels = ["Cantrip", ...[...new Set(spells.map(s => s.Level).filter(l => l && l !== 'Cantrip'))].sort((a, b) => {
+        const levelOrder = ["Cantrip", "1st-level", "2nd-level", "3rd-level", "4th-level", "5th-level", "6th-level", "7th-level", "8th-level", "9th-level"];
+        return levelOrder.indexOf(a) - levelOrder.indexOf(b);
+    })];
+    const spellSchools = [...new Set(spells.map(s => s.School).filter(Boolean))].sort((a, b) => a.localeCompare(b));
 
     container.innerHTML = `
         <h2 class="text-xl font-bold mb-2">${title}</h2>
@@ -41,12 +44,12 @@ function updatePersonaDropdown() {
     if (!select) return;
     const selectedValue = currentPersona;
     select.innerHTML = '<option value="">-- Select Character --</option>';
-    Object.keys(personas).sort().forEach(name => {
+    for (const name of Object.keys(personas).sort((a, b) => a.localeCompare(b))) {
         const option = document.createElement('option');
         option.value = name;
         option.textContent = name;
         select.appendChild(option);
-    });
+    }
     select.value = selectedValue || "";
 }
 
@@ -62,7 +65,7 @@ function renderSpellListItems(spells, listId, isGlobal = true) {
         </div>`;
     }).join('') || '<p class="p-4 text-gray-500">No spells found.</p>';
     
-    document.querySelectorAll('.spell-item').forEach(item => {
+    for (const item of document.querySelectorAll('.spell-item')) {
         item.addEventListener('click', () => {
             const spellName = item.dataset.spellName;
             const sourceList = (isGlobal || !isAdmin()) 
@@ -71,7 +74,7 @@ function renderSpellListItems(spells, listId, isGlobal = true) {
             const spell = sourceList.find(s => s['Spell Name'] === spellName);
             displaySpellCard(spell, isGlobal);
         });
-    });
+    }
 
     const currentCard = document.getElementById('spell-card-view');
     if (!currentCard?.innerHTML.includes('No Spell Selected')) {
@@ -251,7 +254,7 @@ function renderUserManagementView() {
             </div>
         </div>`).join('') : '<p class="p-4 text-gray-500">No sub-admins found.</p>';
 
-    const personaHtml = Object.keys(personas).length ? Object.keys(personas).sort().map(name => `
+    const personaHtml = Object.keys(personas).length ? Object.keys(personas).sort((a, b) => a.localeCompare(b)).map(name => `
         <div class="flex justify-between items-center p-3 hover:bg-gray-100 rounded-md">
             <p class="font-semibold">${name}</p>
             <div class="flex gap-2">
@@ -412,5 +415,9 @@ function renderAdminView() {
 // --- APP ENTRY POINT ---
 
 export function renderApp() {
-    getCurrentUser() && isAdmin() ? renderAdminView() : renderPublicView();
+    if (getCurrentUser() && isAdmin()) {
+        renderAdminView();
+    } else {
+        renderPublicView();
+    }
 }

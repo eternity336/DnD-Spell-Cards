@@ -1,6 +1,6 @@
 import * as db from '../api.js';
 import { openAdminChangePinModal, openPinModal } from './modals.js';
-import { renderApp, renderPersonaEditView, renderPublicView, switchAdminTab } from './render.js';
+import { renderApp, renderPersonaEditView, renderPublicView } from './render.js';
 import { personas, currentPersona, setCurrentPersona, setCurrentPersonaAccess, setCurrentMode, hashPin, currentMode } from './core.js';
 import { isAdmin } from '../auth.js';
 import { attachDataListeners } from '../app.js';
@@ -110,17 +110,17 @@ export async function handlePersonaChange(e) {
             setCurrentPersona(selectedName);
         }
         // If no PIN provided, or incorrect PIN, handle based on guestPinHash presence
+        // If no PIN provided, or incorrect PIN, handle based on guestPinHash presence
         else {
-            // This covers Scenario 1: Owner has PIN, Guest has NO PIN set, and no PIN was entered or incorrect owner PIN
-            // In this case, if there's no guestPinHash, we should grant guest access.
-            if (!persona.guestPinHash) {
-                setCurrentPersonaAccess('guest');
-                setCurrentPersona(selectedName);
-            } else {
-                // If a guest PIN is set, and no correct PIN was entered, deny access.
+            let accessGranted = false;
+            if (persona.guestPinHash) { // If a guest PIN is set
                 alert('Incorrect PIN.');
                 setCurrentPersona(null);
                 setCurrentPersonaAccess(null);
+            } else { // If no guest PIN is set
+                setCurrentPersonaAccess('guest');
+                setCurrentPersona(selectedName);
+                accessGranted = true;
             }
         }
         renderPublicView();

@@ -1,2 +1,3 @@
 node*
 *.zip
+server/db/spells.db

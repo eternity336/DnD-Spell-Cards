@@ -1,5 +1,5 @@
 const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
+const path = require('node:path');
 const { sha256 } = require('js-sha256');
 
 const dbPath = path.resolve(__dirname, 'spells.db');

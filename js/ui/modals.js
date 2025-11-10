@@ -1,7 +1,7 @@
 import { getCurrentUser, setCurrentUser, isAdmin } from '../auth.js';
 import * as db from '../api.js';
 import { renderApp, renderPublicView } from './render.js';
-import { hashPin, personas, currentPersona, currentPersonaAccess, setPersonas, setCurrentPersona, setCurrentPersonaAccess, pendingSpells, setPendingSpells, allUsers } from './core.js';
+import { hashPin, personas, currentPersona, currentPersonaAccess, setCurrentPersona, setCurrentPersonaAccess, allUsers } from './core.js';
 import { attachDataListeners } from '../app.js';
 
 // --- MODAL FUNCTIONS (DEFINED FIRST) ---
