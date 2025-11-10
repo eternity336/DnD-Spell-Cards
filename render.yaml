@@ -1,0 +1,27 @@
+services:
+  # A Web Service running from the provided Dockerfile
+  - type: web
+    name: dnd-spell-cards
+    # Use the Docker runtime to build from your Dockerfile
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    # Use the free plan
+    plan: starter
+    ports:
+      # The port your server listens on
+      - port: 3000
+        protocol: TCP
+    healthCheck:
+      # Render will check this path to see if your service is live
+      path: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+    # Persistent Disk for the SQLite database
+    disks:
+      - name: dnd-db
+        # Mount path must match the directory where your DB is located
+        # WORKDIR is /usr/src/app, and your DB is in /server/db/
+        mountPath: /usr/src/app/server/db
+        # Smallest available disk size
+        sizeGB: 1
