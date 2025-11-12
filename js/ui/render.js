@@ -93,7 +93,7 @@ function displaySpellCard(spell, isGlobal) {
         container.innerHTML = `<h2 class="text-2xl font-bold">No Spell Selected</h2>`;
         return;
     }
-    const detailsOrder = ['Level', 'School', 'Casting Time', 'Range', 'Components', 'Duration', 'Description', 'Higher Level'];
+    const detailsOrder = ['Level', 'School', 'Casting Time', 'Range', 'Area', 'Attack/Save', 'Damage/Effect', 'Ritual', 'Concentration', 'Components', 'Duration', 'Description', 'Higher Level', 'Classes', 'WIKIDOT', 'Source'];
     const detailsHtml = detailsOrder.map(key => spell[key] ? `<div><strong class="font-semibold">${key}:</strong> <span>${spell[key]}</span></div>` : '').join('');
     let actionsHtml = '';
     if (isAdmin()) {
@@ -288,9 +288,9 @@ export function switchAdminTab(tabName) {
         main.querySelector('.grid').addEventListener('click', handleAdminActionClick);
     } else {
         main.innerHTML = `
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 h-full">
-                <div id="spell-list-container" class="bg-white rounded-lg shadow-md list-panel"></div>
-                <div id="spell-card-view" class="bg-white rounded-lg shadow-md flex flex-col p-6 overflow-y-auto custom-scrollbar"></div>
+            <div class="flex flex-col md:flex-row gap-6 h-full">
+                <div id="spell-list-container" class="bg-white rounded-lg shadow-md list-panel h-1/2 md:h-full md:w-1/2"></div>
+                <div id="spell-card-view" class="bg-white rounded-lg shadow-md flex flex-col p-4 sm:p-6 overflow-y-auto custom-scrollbar h-1/2 md:h-full md:w-1/2"></div>
             </div>`;
         if (tabName === 'global') {
             renderAdminSpellList(allSpells, 'spell-list-container', true);
@@ -315,8 +315,8 @@ function renderMainContent() {
         renderPersonaEditView();
     } else {
         main.innerHTML = `
-            <div id="spell-list-container" class="bg-white rounded-lg shadow-md list-panel"></div>
-            <div id="spell-card-view" class="bg-white rounded-lg shadow-md flex flex-col p-6 overflow-y-auto custom-scrollbar"></div>`;
+            <div id="spell-list-container" class="bg-white rounded-lg shadow-md list-panel h-1/2 md:h-full md:w-1/2"></div>
+            <div id="spell-card-view" class="bg-white rounded-lg shadow-md flex flex-col p-4 sm:p-6 overflow-y-auto custom-scrollbar h-1/2 md:h-full md:w-1/2"></div>`;
         renderSpellList();
     }
 }
@@ -352,7 +352,7 @@ export function renderPublicView() {
                 ${adminDeleteButton}
             </div>
         </header>
-        <main id="main-content" class="flex-grow grid grid-cols-1 md:grid-cols-2 gap-6 h-full overflow-hidden mt-6"></main>`;
+        <main id="main-content" class="flex-grow flex flex-col md:flex-row gap-6 mt-6"></main>`;
 
     document.getElementById('theme-toggle-btn').addEventListener('click', toggleTheme);
     document.getElementById('admin-login-btn').addEventListener('click', openAdminLoginModal);
@@ -395,7 +395,7 @@ function renderAdminView() {
             <button id="pending-spells-tab" class="tab-button" data-active="false">Pending Spells ${pendingCount}</button>
             <button id="users-tab" class="tab-button" data-active="false">User Management</button>
         </div>
-        <main id="main-content-admin" class="flex-grow h-full overflow-hidden">
+        <main id="main-content-admin" class="flex-grow">
         </main>`;
     document.getElementById('logout-btn').addEventListener('click', logout);
     document.getElementById('settings-btn').addEventListener('click', openSettingsModal);
