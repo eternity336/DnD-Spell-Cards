@@ -7,6 +7,58 @@ import { attachDataListeners } from '../app.js';
 
 // --- EVENT HANDLERS ---
 
+export function initResizablePanels() {
+    const resizer = document.getElementById('resizer');
+    if (!resizer) return;
+
+    const leftPanel = document.getElementById('spell-list-container');
+    const rightPanel = document.getElementById('spell-card-view');
+    const container = resizer.parentNode;
+
+    let x = 0;
+    let y = 0;
+    let leftWidth = 0;
+    let topHeight = 0;
+
+    const mouseDownHandler = function (e) {
+        // Get the current mouse position
+        x = e.clientX;
+        y = e.clientY;
+        leftWidth = leftPanel.getBoundingClientRect().width;
+        topHeight = leftPanel.getBoundingClientRect().height;
+
+        // Attach the listeners to `document`
+        document.addEventListener('mousemove', mouseMoveHandler);
+        document.addEventListener('mouseup', mouseUpHandler);
+    };
+
+    const mouseMoveHandler = function (e) {
+        const isHorizontal = getComputedStyle(container).flexDirection === 'row';
+        const resizerSize = isHorizontal ? resizer.getBoundingClientRect().width : resizer.getBoundingClientRect().height;
+        const resizerMargin = isHorizontal ? parseFloat(getComputedStyle(resizer).marginLeft) + parseFloat(getComputedStyle(resizer).marginRight) : parseFloat(getComputedStyle(resizer).marginTop) + parseFloat(getComputedStyle(resizer).marginBottom);
+        const resizerTotalSize = resizerSize + resizerMargin;
+
+        if (isHorizontal) {
+            const dx = e.clientX - x;
+            const newLeftWidth = leftWidth + dx;
+            leftPanel.style.flexBasis = `${newLeftWidth}px`;
+            rightPanel.style.flexBasis = `calc(100% - ${newLeftWidth}px - ${resizerTotalSize}px)`;
+        } else {
+            const dy = e.clientY - y;
+            const newTopHeight = topHeight + dy;
+            leftPanel.style.flexBasis = `${newTopHeight}px`;
+            rightPanel.style.flexBasis = `calc(100% - ${newTopHeight}px - ${resizerTotalSize}px)`;
+        }
+    };
+
+    const mouseUpHandler = function () {
+        document.removeEventListener('mousemove', mouseMoveHandler);
+        document.removeEventListener('mouseup', mouseUpHandler);
+    };
+
+    resizer.addEventListener('mousedown', mouseDownHandler);
+}
+
 export function handleAdminActionClick(e) {
     const target = e.target;
     const name = target.dataset.name;

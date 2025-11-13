@@ -141,7 +141,6 @@ button {
 
 .orientation-layout {
     display: flex;
-    gap: 1.5rem; /* gap-6 */
     height: 100%; /* Ensure the flex container takes full height */
 }
 
@@ -149,9 +148,15 @@ button {
     .orientation-layout {
         flex-direction: column;
     }
-    .orientation-layout > div { /* Target direct children (spell-list-container, spell-card-view) */
+    .orientation-layout > #spell-list-container,
+    .orientation-layout > #spell-card-view { /* Target direct children */
         flex-basis: 50%;
         height: 50%; /* Explicitly set height for portrait */
+    }
+    #resizer {
+        flex-basis: 5px;
+        cursor: row-resize;
+        margin: 0.75rem 0;
     }
 }
 
@@ -159,9 +164,15 @@ button {
     .orientation-layout {
         flex-direction: row;
     }
-    .orientation-layout > div { /* Target direct children */
+    .orientation-layout > #spell-list-container,
+    .orientation-layout > #spell-card-view { /* Target direct children */
         flex-basis: 50%;
         width: 50%; /* Explicitly set width for landscape */
+    }
+    #resizer {
+        flex-basis: 5px;
+        cursor: col-resize;
+        margin: 0 0.75rem;
     }
 }
 
@@ -175,4 +186,14 @@ button {
     overflow-wrap: break-word;
     word-wrap: break-word;
     hyphens: auto;
+}
+
+#resizer {
+    background: #e5e7eb; /* gray-200 */
+    flex-shrink: 0;
+    flex-grow: 0;
+}
+
+.dark #resizer {
+    background: #374151; /* dark:bg-gray-700 */
 }
