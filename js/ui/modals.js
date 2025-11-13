@@ -10,12 +10,12 @@ function openModal(title, contentHtml, maxWidth = 'max-w-md') {
     const modalContainer = document.getElementById('modal-container');
     modalContainer.innerHTML = `
         <div id="modal-backdrop" class="modal-overlay bg-black bg-opacity-50">
-            <div class="bg-white rounded-lg shadow-xl w-full ${maxWidth}">
-                <div class="p-6">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-2xl font-bold">${title}</h2>
-                        <button id="close-modal-btn" class="text-3xl">&times;</button>
-                    </div>
+            <div class="bg-white rounded-lg shadow-xl w-full ${maxWidth} flex flex-col max-h-[90vh]">
+                <div class="p-4 flex justify-between items-center border-b">
+                    <h2 class="text-2xl font-bold">${title}</h2>
+                    <button id="close-modal-btn" class="text-3xl">&times;</button>
+                </div>
+                <div class="p-4 overflow-y-auto flex-grow">
                     ${contentHtml}
                 </div>
             </div>
@@ -203,23 +203,34 @@ export function openAddSpellModal() {
     const spellSchools = ["Abjuration", "Conjuration", "Divination", "Enchantment", "Evocation", "Illusion", "Necromancy", "Transmutation"];
     
     const content = `
-         <form id="add-spell-form" class="space-y-2">
+         <form id="add-spell-form" class="space-y-2 custom-scrollbar" style="max-height: 60vh; overflow-y: auto; padding-right: 1rem;">
             <datalist id="level-list">${spellLevels.map(l => `<option value="${l}">`).join('')}</datalist>
             <datalist id="school-list">${spellSchools.map(s => `<option value="${s}">`).join('')}</datalist>
-            <div class="grid grid-cols-2 gap-4">
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div><label class="block text-sm">Spell Name*</label><input type="text" name="Spell Name" required></div>
                 <div><label class="block text-sm">Level*</label><input type="text" name="Level" required list="level-list"></div>
                 <div><label class="block text-sm">School</label><input type="text" name="School" list="school-list"></div>
+                <div><label class="block text-sm">Source</label><input type="text" name="Source"></div>
                 <div><label class="block text-sm">Casting Time</label><input type="text" name="Casting Time" value="1 action"></div>
+                <div><label class="block text-sm">Duration</label><input type="text" name="Duration"></div>
                 <div><label class="block text-sm">Range</label><input type="text" name="Range"></div>
+                <div><label class="block text-sm">Area</label><input type="text" name="Area"></div>
+                <div><label class="block text-sm">Attack/Save</label><input type="text" name="Attack/Save"></div>
+                <div><label class="block text-sm">Damage/Effect</label><input type="text" name="Damage/Effect"></div>
                 <div><label class="block text-sm">Components</label><input type="text" name="Components"></div>
+                <div><label class="block text-sm">Ritual (true/false)</label><input type="text" name="Ritual"></div>
+                <div><label class="block text-sm">Concentration (true/false)</label><input type="text" name="Concentration"></div>
+                <div><label class="block text-sm">Classes</label><input type="text" name="Classes"></div>
+                <div><label class="block text-sm">WIKIDOT Link</label><input type="text" name="WIKIDOT"></div>
             </div>
-            <div><label class="block text-sm">Duration</label><input type="text" name="Duration"></div>
+
             <div><label class="block text-sm">Description*</label><textarea name="Description" rows="4" required></textarea></div>
-            <div><label class="block text-sm">At Higher Levels</label><textarea name="Higher Level" rows="2"></textarea></div>
+            <div><label class="block text-sm">At Higher Levels</label><textarea name="Higher Level" rows="2"></textarea>
+            
             <button type="submit" class="btn-indigo w-full mt-4">${isAdmin() ? 'Add to Global List' : 'Submit for Approval'}</button>
          </form>`;
-    openModal('Submit a New Spell', content, 'max-w-lg');
+    openModal('Submit a New Spell', content, 'max-w-4xl');
     document.getElementById('add-spell-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         const formData = new FormData(e.target);
@@ -245,23 +256,34 @@ export function openEditSpellModal(spell) {
     const spellSchools = ["Abjuration", "Conjuration", "Divination", "Enchantment", "Evocation", "Illusion", "Necromancy", "Transmutation"];
 
     const content = `
-        <form id="edit-spell-form" class="space-y-2">
+        <form id="edit-spell-form" class="space-y-2 custom-scrollbar" style="max-height: 60vh; overflow-y: auto; padding-right: 1rem;">
             <datalist id="level-list">${spellLevels.map(l => `<option value="${l}">`).join('')}</datalist>
             <datalist id="school-list">${spellSchools.map(s => `<option value="${s}">`).join('')}</datalist>
-           <div class="grid grid-cols-2 gap-4">
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                <div><label class="block text-sm">Spell Name*</label><input type="text" name="Spell Name" value="${spell['Spell Name'] || ''}" required></div>
                <div><label class="block text-sm">Level*</label><input type="text" name="Level" value="${spell['Level'] || ''}" required list="level-list"></div>
                <div><label class="block text-sm">School</label><input type="text" name="School" value="${spell['School'] || ''}" list="school-list"></div>
+               <div><label class="block text-sm">Source</label><input type="text" name="Source" value="${spell['Source'] || ''}"></div>
                <div><label class="block text-sm">Casting Time</label><input type="text" name="Casting Time" value="${spell['Casting Time'] || ''}"></div>
+               <div><label class="block text-sm">Duration</label><input type="text" name="Duration" value="${spell['Duration'] || ''}"></div>
                <div><label class="block text-sm">Range</label><input type="text" name="Range" value="${spell['Range'] || ''}"></div>
+               <div><label class="block text-sm">Area</label><input type="text" name="Area" value="${spell['Area'] || ''}"></div>
+               <div><label class="block text-sm">Attack/Save</label><input type="text" name="Attack/Save" value="${spell['Attack/Save'] || ''}"></div>
+               <div><label class="block text-sm">Damage/Effect</label><input type="text" name="Damage/Effect" value="${spell['Damage/Effect'] || ''}"></div>
                <div><label class="block text-sm">Components</label><input type="text" name="Components" value="${spell['Components'] || ''}"></div>
-           </div>
-           <div><label class="block text-sm">Duration</label><input type="text" name="Duration" value="${spell['Duration'] || ''}"></div>
+               <div><label class="block text-sm">Ritual (true/false)</label><input type="text" name="Ritual" value="${spell['Ritual'] || ''}"></div>
+               <div><label class="block text-sm">Concentration (true/false)</label><input type="text" name="Concentration" value="${spell['Concentration'] || ''}"></div>
+               <div><label class="block text-sm">Classes</label><input type="text" name="Classes" value="${spell['Classes'] || ''}"></div>
+               <div><label class="block text-sm">WIKIDOT Link</label><input type="text" name="WIKIDOT" value="${spell['WIKIDOT'] || ''}"></div>
+            </div>
+
            <div><label class="block text-sm">Description*</label><textarea name="Description" rows="4" required>${spell['Description'] || ''}</textarea></div>
            <div><label class="block text-sm">At Higher Levels</label><textarea name="Higher Level" rows="2">${spell['Higher Level'] || ''}</textarea></div>
+           
            <button type="submit" class="btn-indigo w-full mt-4">Save Changes</button>
         </form>`;
-    openModal(`Edit "${spell['Spell Name']}"`, content, 'max-w-lg');
+    openModal(`Edit "${spell['Spell Name']}"`, content, 'max-w-4xl');
     document.getElementById('edit-spell-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         const formData = new FormData(e.target);
@@ -288,6 +310,52 @@ export function openConflictModal(existingSpell, newSpell) {
         openModal('Spell Conflict', content, 'max-w-4xl');
         document.getElementById('conflict-keep-btn').onclick = () => { closeModal(); resolve('keep'); };
         document.getElementById('conflict-replace-btn').onclick = () => { closeModal(); resolve('replace'); };
+    });
+}
+
+export function openDetailedConflictModal(existingSpell, newSpell, conflicts) {
+    return new Promise((resolve) => {
+        let conflictHtml = '';
+        conflicts.forEach(conflict => {
+            conflictHtml += `
+                <div class="mb-4 p-3 border rounded-md bg-gray-50">
+                    <h4 class="font-semibold text-md mb-2">${conflict.key}</h4>
+                    <div class="flex flex-col sm:flex-row justify-between items-center gap-2">
+                        <div class="flex-1 p-2 border rounded-md bg-white">
+                            <label class="block text-xs text-gray-600">Existing:</label>
+                            <p class="text-sm font-medium">${conflict.existingValue || 'N/A'}</p>
+                            <input type="radio" name="choice-${conflict.key}" value="existing" checked class="mr-1"> Keep Existing
+                        </div>
+                        <div class="flex-1 p-2 border rounded-md bg-white">
+                            <label class="block text-xs text-gray-600">New (from CSV):</label>
+                            <p class="text-sm font-medium">${conflict.newValue || 'N/A'}</p>
+                            <input type="radio" name="choice-${conflict.key}" value="new" class="mr-1"> Use New
+                        </div>
+                    </div>
+                </div>`;
+        });
+
+        const content = `
+            <p class="mb-4">A spell named "${newSpell['Spell Name']}" already exists with conflicting data. Please resolve the conflicts below:</p>
+            <div class="overflow-y-auto custom-scrollbar" style="max-height: 60vh;">
+                ${conflictHtml}
+            </div>
+            <div class="mt-6 flex justify-end gap-4">
+                <button id="resolve-conflicts-btn" class="btn-indigo">Resolve Conflicts</button>
+            </div>`;
+        openModal('Resolve Spell Conflicts', content, 'max-w-2xl');
+
+        document.getElementById('resolve-conflicts-btn').onclick = () => {
+            const userChoices = {};
+            conflicts.forEach(conflict => {
+                const selected = document.querySelector(`input[name="choice-${conflict.key}"]:checked`);
+                if (selected) {
+                    userChoices[conflict.key] = selected.value;
+                }
+            });
+            closeModal();
+            resolve(userChoices);
+        };
     });
 }
 

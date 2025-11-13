@@ -14,6 +14,26 @@ function hashPin(pin) {
     return sha256(pin);
 }
 
+// Helper function to add a column if it doesn't exist
+function addColumnIfNotExists(dbInstance, tableName, columnName, columnType) {
+    dbInstance.all(`PRAGMA table_info(${tableName})`, (err, columns) => { // Use dbInstance.all for PRAGMA
+        if (err) {
+            console.error(`Error checking table info for ${tableName}:`, err.message);
+            return;
+        }
+        const columnExists = columns.some(col => col.name === columnName);
+        if (!columnExists) {
+            dbInstance.run(`ALTER TABLE ${tableName} ADD COLUMN ${columnName} ${columnType}`, (err) => {
+                if (err) {
+                    console.error(`Error adding column ${columnName} to ${tableName}:`, err.message);
+                } else {
+                    console.log(`Column ${columnName} added to ${tableName}.`);
+                }
+            });
+        }
+    });
+}
+
 db.serialize(() => {
     db.run(`
         CREATE TABLE IF NOT EXISTS spells (
@@ -21,6 +41,8 @@ db.serialize(() => {
             data TEXT
         );
     `);
+    // Conditionally add source column to spells table
+    addColumnIfNotExists(db, 'spells', 'source', 'TEXT');
 
     db.run(`
         CREATE TABLE IF NOT EXISTS users (
@@ -45,6 +67,8 @@ db.serialize(() => {
             status TEXT
         );
     `);
+    // Conditionally add source column to pendingSpells table
+    addColumnIfNotExists(db, 'pendingSpells', 'source', 'TEXT');
 
     // Seed initial admin user if not exists
     const adminUsername = 'admin';

@@ -68,6 +68,7 @@ The application supports importing spell data via CSV files.
     -   `Name` will be mapped to `Spell Name`
     -   `Details` will be mapped to `Description`
     -   `Upcast` will be mapped to `Higher Level`
+    -   `Book` will be mapped to `Source`
 -   A column for `Spell Name` (or `Name`) is mandatory for each spell entry.
 -   **Available Columns:**
     -   `Spell Name` (mandatory)
@@ -75,10 +76,18 @@ The application supports importing spell data via CSV files.
     -   `School`
     -   `Casting Time`
     -   `Range`
+    -   `Area`
+    -   `Attack/Save`
+    -   `Damage/Effect`
+    -   `Ritual`
+    -   `Concentration`
     -   `Components`
     -   `Duration`
     -   `Description`
     -   `Higher Level`
+    -   `Classes`
+    -   `WIKIDOT`
+    -   `Source`
 
 ### Import Process
 -   **Admin Users:** When an admin user imports a CSV, the system will attempt to add new spells or update existing ones. If a spell with the same name already exists but has different data, a conflict resolution modal will appear, allowing the admin to choose whether to keep the existing version or replace it with the imported data.

@@ -1,7 +1,8 @@
 /* Basic Reset & Font Setup */
-body { 
-    font-family: 'Inter', sans-serif; 
-    margin: 0; 
+body {
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    min-height: 100vh;
     background-color: #f3f4f6; /* Light: gray-100 */
     color: #1f2937; /* Light: text-gray-800 */
 }
@@ -82,7 +83,7 @@ body {
 .shadow-md { box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06); }
 .shadow-xl { box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); }
 .overflow-hidden { overflow: hidden; }
-.overflow-y-auto { overflow-y: auto; }
+.overflow-y-auto { overflow-y: auto; -webkit-overflow-scrolling: touch; }
 .cursor-pointer { cursor: pointer; }
 
 /* Light Mode Colors (Defaults) */
@@ -137,8 +138,62 @@ button {
 .tab-button[data-active="true"] { background-color: #4f46e5; color: white; }
 .tab-button[data-active="false"] { background-color: #e5e7eb; color: #374151; }
 .dark .tab-button[data-active="false"] { background-color: #374151; color: #d1d5db; }
+
+.orientation-layout {
+    display: flex;
+    height: 100%; /* Ensure the flex container takes full height */
+}
+
+@media (orientation: portrait) {
+    .orientation-layout {
+        flex-direction: column;
+    }
+    .orientation-layout > #spell-list-container,
+    .orientation-layout > #spell-card-view { /* Target direct children */
+        flex-basis: 50%;
+        height: 50%; /* Explicitly set height for portrait */
+    }
+    #resizer {
+        flex-basis: 5px;
+        cursor: row-resize;
+        margin: 0.75rem 0;
+    }
+}
+
+@media (orientation: landscape) {
+    .orientation-layout {
+        flex-direction: row;
+    }
+    .orientation-layout > #spell-list-container,
+    .orientation-layout > #spell-card-view { /* Target direct children */
+        flex-basis: 50%;
+        width: 50%; /* Explicitly set width for landscape */
+    }
+    #resizer {
+        flex-basis: 5px;
+        cursor: col-resize;
+        margin: 0 0.75rem;
+    }
+}
+
 .list-panel {
     display: flex;
     flex-direction: column;
     min-height: 0;
+    overflow: hidden;
+}
+.spell-card-details span {
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    hyphens: auto;
+}
+
+#resizer {
+    background: #e5e7eb; /* gray-200 */
+    flex-shrink: 0;
+    flex-grow: 0;
+}
+
+.dark #resizer {
+    background: #374151; /* dark:bg-gray-700 */
 }

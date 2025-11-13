@@ -3,7 +3,7 @@
 export async function getGlobalSpells(callback) {
     const response = await fetch('/api/spells');
     const data = await response.json();
-    callback({ docs: data.data.map(s => ({ data: () => JSON.parse(s.data) })) });
+    callback({ docs: data.data.map(s => ({ id: s['Spell Name'].replace(/[\s/]/g, '-').toLowerCase(), data: () => s })) });
 }
 
 export async function getUsers(callback) {
@@ -96,7 +96,7 @@ export function getPendingSpells(callback) {
     fetch('/api/pending-spells')
         .then(response => response.json())
         .then(data => {
-            callback({ docs: data.data.map(s => ({ id: s.name, data: () => ({ ...JSON.parse(s.data), submittedBy: s.submittedBy, status: s.status }) })) });
+            callback({ docs: data.data.map(s => ({ id: s.id, data: () => s })) });
         });
 }
 

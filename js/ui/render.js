@@ -11,7 +11,7 @@ import {
 } from './modals.js';
 import {
     handlePersonaChange, togglePersonaEditMode, handleDeletePersona, handleAddSpellToPersona, handleRemoveSpellFromPersona,
-    handleAdminActionClick
+    handleAdminActionClick, initResizablePanels
 } from './handlers.js';
 
 // --- COMPONENT RENDERERS ---
@@ -25,18 +25,21 @@ function createFilterHeader(containerId, title, spells, onFilter) {
         return levelOrder.indexOf(a) - levelOrder.indexOf(b);
     })];
     const spellSchools = [...new Set(spells.map(s => s.School).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+    const allClasses = [...new Set(spells.flatMap(s => s.Classes ? s.Classes.split(',').map(c => c.trim()) : []))].sort();
 
     container.innerHTML = `
         <h2 class="text-xl font-bold mb-2">${title}</h2>
-        <div class="grid grid-cols-2 gap-4 mb-4">
+        <div class="grid grid-cols-3 gap-4 mb-4">
             <select id="${containerId}-level-filter" class="w-full"><option value="">All Levels</option>${spellLevels.map(l => `<option value="${l}">${l}</option>`).join('')}</select>
             <select id="${containerId}-school-filter" class="w-full"><option value="">All Schools</option>${spellSchools.map(s => `<option value="${s}">${s}</option>`).join('')}</select>
+            <select id="${containerId}-class-filter" class="w-full"><option value="">All Classes</option>${allClasses.map(c => `<option value="${c}">${c}</option>`).join('')}</select>
         </div>
         <input type="text" id="${containerId}-search-input" placeholder="Search spells..." class="w-full">`;
     
     document.getElementById(`${containerId}-search-input`).addEventListener('keyup', onFilter);
     document.getElementById(`${containerId}-level-filter`).addEventListener('change', onFilter);
     document.getElementById(`${containerId}-school-filter`).addEventListener('change', onFilter);
+    document.getElementById(`${containerId}-class-filter`).addEventListener('change', onFilter);
 }
 
 function updatePersonaDropdown() {
@@ -93,8 +96,8 @@ function displaySpellCard(spell, isGlobal) {
         container.innerHTML = `<h2 class="text-2xl font-bold">No Spell Selected</h2>`;
         return;
     }
-    const detailsOrder = ['Level', 'School', 'Casting Time', 'Range', 'Components', 'Duration', 'Description', 'Higher Level'];
-    const detailsHtml = detailsOrder.map(key => spell[key] ? `<div><strong class="font-semibold">${key}:</strong> <span>${spell[key]}</span></div>` : '').join('');
+    const detailsOrder = ['Level', 'Classes', 'School', 'Casting Time', 'Range', 'Area', 'Attack/Save', 'Damage/Effect', 'Ritual', 'Concentration', 'Components', 'Duration', 'Description', 'Higher Level', 'WIKIDOT', 'Source'];
+    const detailsHtml = detailsOrder.map(key => spell[key] ? `<div><strong class="font-semibold">${key}:</strong> <span class="spell-card-details">${spell[key]}</span></div>` : '').join('');
     let actionsHtml = '';
     if (isAdmin()) {
         if (isGlobal && spell.status !== 'pending') {
@@ -169,12 +172,19 @@ function renderSpellList() {
         const searchTerm = document.getElementById('filter-header-search-input').value.toLowerCase();
         const level = document.getElementById('filter-header-level-filter').value;
         const school = document.getElementById('filter-header-school-filter').value;
+        const selectedClass = document.getElementById('filter-header-class-filter').value;
 
-        const filtered = spellsToDisplay.filter(spell => 
-            ((spell['Spell Name'] || '').toLowerCase().includes(searchTerm)) &&
-            (!level || spell.Level === level) &&
-            (!school || spell.School === school)
-        );
+        const filtered = spellsToDisplay.filter(spell => {
+            const searchMatch = Object.values(spell).some(value => 
+                String(value).toLowerCase().includes(searchTerm)
+            );
+            const classMatch = !selectedClass || (spell.Classes && spell.Classes.split(',').map(c => c.trim()).includes(selectedClass));
+
+            return searchMatch &&
+                (!level || spell.Level === level) &&
+                (!school || spell.School === school) &&
+                classMatch;
+        });
         renderSpellListItems(filtered, 'spell-list-items');
     };
     performFilter();
@@ -188,11 +198,18 @@ export function renderPersonaEditView() {
         const searchTerm = document.getElementById('global-list-header-search-input').value.toLowerCase();
         const level = document.getElementById('global-list-header-level-filter').value;
         const school = document.getElementById('global-list-header-school-filter').value;
-        const filtered = allSpells.filter(spell => 
-            ((spell['Spell Name'] || '').toLowerCase().includes(searchTerm)) &&
-            (!level || spell.Level === level) &&
-            (!school || spell.School === school)
-        );
+        const selectedClass = document.getElementById('global-list-header-class-filter').value;
+        const filtered = allSpells.filter(spell => {
+            const searchMatch = Object.values(spell).some(value =>
+                String(value).toLowerCase().includes(searchTerm)
+            );
+            const classMatch = !selectedClass || (spell.Classes && spell.Classes.split(',').map(c => c.trim()).includes(selectedClass));
+
+            return searchMatch &&
+                (!level || spell.Level === level) &&
+                (!school || spell.School === school) &&
+                classMatch;
+        });
         const globalListEl = document.getElementById('edit-global-list');
         globalListEl.innerHTML = filtered.map(spell => {
             const isAdded = personaSpells.includes(spell['Spell Name']);
@@ -232,11 +249,19 @@ function renderAdminSpellList(spells, containerId, isGlobal) {
         const searchTerm = document.getElementById('admin-filter-header-search-input').value.toLowerCase();
         const level = document.getElementById('admin-filter-header-level-filter').value;
         const school = document.getElementById('admin-filter-header-school-filter').value;
-        const filtered = spells.filter(spell => 
-            ((spell['Spell Name'] || '').toLowerCase().includes(searchTerm)) &&
-            (!level || spell.Level === level) &&
-            (!school || spell.School === school)
-        );
+        const selectedClass = document.getElementById('admin-filter-header-class-filter').value;
+
+        const filtered = spells.filter(spell => {
+            const searchMatch = Object.values(spell).some(value =>
+                String(value).toLowerCase().includes(searchTerm)
+            );
+            const classMatch = !selectedClass || (spell.Classes && spell.Classes.split(',').map(c => c.trim()).includes(selectedClass));
+
+            return searchMatch &&
+                (!level || spell.Level === level) &&
+                (!school || spell.School === school) &&
+                classMatch;
+        });
         renderSpellListItems(filtered, 'spell-list-items', isGlobal);
     };
     performFilter();
@@ -288,15 +313,17 @@ export function switchAdminTab(tabName) {
         main.querySelector('.grid').addEventListener('click', handleAdminActionClick);
     } else {
         main.innerHTML = `
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 h-full">
-                <div id="spell-list-container" class="bg-white rounded-lg shadow-md list-panel"></div>
-                <div id="spell-card-view" class="bg-white rounded-lg shadow-md flex flex-col p-6 overflow-y-auto custom-scrollbar"></div>
+            <div class="orientation-layout gap-6">
+                <div id="spell-list-container" class="bg-white rounded-lg shadow-md list-panel flex-1"></div>
+                <div id="resizer"></div>
+                <div id="spell-card-view" class="bg-white rounded-lg shadow-md flex flex-col p-4 sm:p-6 overflow-y-auto custom-scrollbar flex-1"></div>
             </div>`;
         if (tabName === 'global') {
             renderAdminSpellList(allSpells, 'spell-list-container', true);
         } else {
             renderAdminSpellList(pendingSpells, 'spell-list-container', false);
         }
+        initResizablePanels();
     }
 }
 
@@ -304,20 +331,22 @@ function renderMainContent() {
     const main = document.getElementById('main-content');
     if (currentMode === 'edit' && currentPersonaAccess === 'owner') {
         main.innerHTML = `
-            <div class="bg-white rounded-lg shadow-md list-panel">
+            <div class="bg-white rounded-lg shadow-md list-panel flex-grow">
                 <div id="global-list-header" class="p-4 border-b"></div>
                 <div id="edit-global-list" class="overflow-y-auto custom-scrollbar p-2 flex-grow"></div>
             </div>
-            <div class="bg-white rounded-lg shadow-md list-panel">
+            <div class="bg-white rounded-lg shadow-md list-panel flex-grow">
                 <div class="p-4 border-b"><h2 id="edit-persona-list-title" class="text-xl font-bold">Player's Spells</h2></div>
                 <div id="edit-persona-list" class="overflow-y-auto custom-scrollbar p-2 flex-grow"></div>
             </div>`;
         renderPersonaEditView();
     } else {
         main.innerHTML = `
-            <div id="spell-list-container" class="bg-white rounded-lg shadow-md list-panel"></div>
-            <div id="spell-card-view" class="bg-white rounded-lg shadow-md flex flex-col p-6 overflow-y-auto custom-scrollbar"></div>`;
+            <div id="spell-list-container" class="bg-white rounded-lg shadow-md list-panel flex-1 md:flex-none md:h-full"></div>
+            <div id="resizer"></div>
+            <div id="spell-card-view" class="bg-white rounded-lg shadow-md flex flex-col p-4 sm:p-6 overflow-y-auto custom-scrollbar flex-1 md:flex-none md:h-full"></div>`;
         renderSpellList();
+        initResizablePanels();
     }
 }
 
@@ -352,7 +381,7 @@ export function renderPublicView() {
                 ${adminDeleteButton}
             </div>
         </header>
-        <main id="main-content" class="flex-grow grid grid-cols-1 md:grid-cols-2 gap-6 h-full overflow-hidden mt-6"></main>`;
+        <main id="main-content" class="flex-grow orientation-layout overflow-hidden"></main>`;
 
     document.getElementById('theme-toggle-btn').addEventListener('click', toggleTheme);
     document.getElementById('admin-login-btn').addEventListener('click', openAdminLoginModal);
@@ -395,7 +424,7 @@ function renderAdminView() {
             <button id="pending-spells-tab" class="tab-button" data-active="false">Pending Spells ${pendingCount}</button>
             <button id="users-tab" class="tab-button" data-active="false">User Management</button>
         </div>
-        <main id="main-content-admin" class="flex-grow h-full overflow-hidden">
+        <main id="main-content-admin" class="flex-grow overflow-hidden">
         </main>`;
     document.getElementById('logout-btn').addEventListener('click', logout);
     document.getElementById('settings-btn').addEventListener('click', openSettingsModal);
